@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Pishiriqlar Videos</string>
+    <string name="title_activity_upload">UploadActivity</string>
+    <string name="title_activity_read">ReadActivity</string>
+</resources>

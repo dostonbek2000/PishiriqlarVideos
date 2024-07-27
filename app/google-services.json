@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "992113396615",
+    "project_id": "pishiriqlar-videos",
+    "storage_bucket": "pishiriqlar-videos.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:992113396615:android:4a5e92e568d11a7f78a122",
+        "android_client_info": {
+          "package_name": "com.dostonbek.pishiriqlarvideos"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDk9prE0MbWpx8EI_6WzbvnwBon19XKoGw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
