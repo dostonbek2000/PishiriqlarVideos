@@ -25,6 +25,8 @@ import androidx.compose.ui.unit.sp
 import coil.compose.rememberImagePainter
 import com.dostonbek.pishiriqlarvideos.ui.theme.PishiriqlarVideosTheme
 import com.google.firebase.database.*
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.SwipeRefreshState
 
 class ReadActivity : ComponentActivity() {
     private val database = FirebaseDatabase.getInstance().reference.child("videos")
@@ -34,6 +36,7 @@ class ReadActivity : ComponentActivity() {
         setContent {
             PishiriqlarVideosTheme {
                 VideoListScreen()
+
             }
         }
     }
@@ -44,9 +47,10 @@ class ReadActivity : ComponentActivity() {
         val videoDataList = remember { mutableStateListOf<VideoData>() }
         var isLoading by remember { mutableStateOf(true) }
         var errorMessage by remember { mutableStateOf<String?>(null) }
+        var isRefreshing by remember { mutableStateOf(false) }
 
-        // Fetch video data from Firebase
-        LaunchedEffect(Unit) {
+        // Function to fetch video data
+        fun fetchVideos() {
             val databaseRef = database
             databaseRef.addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -58,33 +62,51 @@ class ReadActivity : ComponentActivity() {
                         }
                     }
                     isLoading = false
+                    isRefreshing = false
                 }
 
                 override fun onCancelled(error: DatabaseError) {
                     errorMessage = error.message
                     isLoading = false
+                    isRefreshing = false
                 }
             })
         }
 
-        if (isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+        // Initial data fetch
+        LaunchedEffect(Unit) {
+            fetchVideos()
+        }
+
+        val swipeRefreshState = remember { SwipeRefreshState(isRefreshing) }
+
+        SwipeRefresh(
+            state = swipeRefreshState,
+            onRefresh = {
+                isRefreshing = true
+                fetchVideos()
             }
-        } else if (errorMessage != null) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = "Error: $errorMessage", color = Color.Red)
-            }
-        } else {
-            LazyColumn {
-                items(videoDataList) { videoData ->
-                    VideoItem(videoData) {
-                        val intent = Intent(context, VideoActivity::class.java).apply {
-                            putExtra("title", videoData.title)
-                            putExtra("description", videoData.description)
-                            putExtra("videoUrl", videoData.url)
+        ) {
+            if (isLoading) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                    fetchVideos()
+                }
+            } else if (errorMessage != null) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(text = "Error: $errorMessage", color = Color.Red)
+                }
+            } else {
+                LazyColumn {
+                    items(videoDataList) { videoData ->
+                        VideoItem(videoData) {
+                            val intent = Intent(context, VideoActivity::class.java).apply {
+                                putExtra("title", videoData.title)
+                                putExtra("description", videoData.description)
+                                putExtra("videoUrl", videoData.url)
+                            }
+                            context.startActivity(intent)
                         }
-                        context.startActivity(intent)
                     }
                 }
             }
@@ -97,7 +119,7 @@ class ReadActivity : ComponentActivity() {
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { onClick() }
-                .padding(0.dp,8.dp)
+                .padding(0.dp, 8.dp)
         ) {
             // Thumbnail Image
             val thumbnailPainter = rememberImagePainter(videoData.thumbnailUrl)
@@ -120,7 +142,7 @@ class ReadActivity : ComponentActivity() {
                 // Channel Image
                 val channelImagePainter = rememberImagePainter("URL_TO_CHANNEL_IMAGE")
                 Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_background),
+                    painter = channelImagePainter,
                     contentDescription = "Channel Image",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
@@ -139,8 +161,6 @@ class ReadActivity : ComponentActivity() {
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
                     )
-
-
 
                     Text(
                         text = videoData.description,
