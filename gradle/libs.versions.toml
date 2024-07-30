@@ -1,8 +1,12 @@
 [versions]
 accompanistExoplayer = "1.0.2"
+accompanistExoplayerVersion = "0.25.1"
+accompanistSwiperefreshVersion = "0.30.0"
 agp = "8.5.0"
 coilCompose = "2.1.0"
+exoplayerCore = "2.18.2"
 exoplayerUi = "2.19.1"
+exoplayerUiVersion = "2.18.2"
 firebaseFirestoreKtx = "25.0.0"
 firebaseStorageKtx = "21.0.0"
 kotlin = "1.9.0"
@@ -15,15 +19,20 @@ activityCompose = "1.9.1"
 composeBom = "2024.04.01"
 googleGmsGoogleServices = "4.4.2"
 firebaseDatabase = "21.0.0"
+swiperefreshlayout = "1.1.0"
 
 [libraries]
 accompanist-exoplayer = { module = "com.google.accompanist:accompanist-exoplayer", version.ref = "accompanistExoplayer" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version.ref = "swiperefreshlayout" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 exoplayer-core = { module = "com.google.android.exoplayer:exoplayer-core", version.ref = "exoplayerUi" }
+exoplayer-core-v2182 = { module = "com.google.android.exoplayer:exoplayer-core", version.ref = "exoplayerCore" }
 exoplayer-ui = { module = "com.google.android.exoplayer:exoplayer-ui", version.ref = "exoplayerUi" }
+exoplayer-ui-v2182 = { module = "com.google.android.exoplayer:exoplayer-ui", version.ref = "exoplayerUiVersion" }
 firebase-firestore-ktx = { module = "com.google.firebase:firebase-firestore-ktx", version.ref = "firebaseFirestoreKtx" }
 firebase-storage-ktx = { module = "com.google.firebase:firebase-storage-ktx", version.ref = "firebaseStorageKtx" }
+google-accompanist-swiperefresh = { module = "com.google.accompanist:accompanist-swiperefresh", version.ref = "accompanistSwiperefreshVersion" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }

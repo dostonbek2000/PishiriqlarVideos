@@ -5,5 +5,5 @@ data class VideoData(
     val thumbnailUrl: String = "",
     val title: String = "",
     val description: String = "",
-    val uploadTime: String = "",
+    val uploadTime: String = ""
 )

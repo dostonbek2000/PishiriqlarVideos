@@ -73,5 +73,9 @@ dependencies {
     implementation(libs.coil.compose)
     //implementation (libs.accompanist.exoplayer)
     implementation (libs.exoplayer.core)
+    implementation (libs.androidx.swiperefreshlayout)
+    implementation (libs.google.accompanist.swiperefresh)
     implementation (libs.exoplayer.ui)
+    implementation (libs.exoplayer.core.v2182)
+    implementation (libs.exoplayer.ui.v2182)
 }
