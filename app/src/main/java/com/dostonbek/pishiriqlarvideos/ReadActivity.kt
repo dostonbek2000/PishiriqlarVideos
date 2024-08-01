@@ -2,6 +2,7 @@ package com.dostonbek.pishiriqlarvideos
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -16,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -24,9 +26,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberImagePainter
 import com.dostonbek.pishiriqlarvideos.ui.theme.PishiriqlarVideosTheme
-import com.google.firebase.database.*
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.SwipeRefreshState
+import com.google.firebase.database.*
 
 class ReadActivity : ComponentActivity() {
     private val database = FirebaseDatabase.getInstance().reference.child("videos")
@@ -36,7 +38,6 @@ class ReadActivity : ComponentActivity() {
         setContent {
             PishiriqlarVideosTheme {
                 VideoListScreen()
-
             }
         }
     }
@@ -59,6 +60,7 @@ class ReadActivity : ComponentActivity() {
                         val videoData = dataSnapshot.getValue(VideoData::class.java)
                         if (videoData != null) {
                             videoDataList.add(videoData)
+                            Log.d("ReadActivity", "Fetched video: $videoData")
                         }
                     }
                     isLoading = false
@@ -90,7 +92,6 @@ class ReadActivity : ComponentActivity() {
             if (isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
-                    fetchVideos()
                 }
             } else if (errorMessage != null) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -122,7 +123,14 @@ class ReadActivity : ComponentActivity() {
                 .padding(0.dp, 8.dp)
         ) {
             // Thumbnail Image
-            val thumbnailPainter = rememberImagePainter(videoData.thumbnailUrl)
+            val thumbnailPainter = rememberImagePainter(
+                data = videoData.thumbnailUrl,
+                builder = {
+                //    placeholder(R.drawable.placeholder) // Add a placeholder image
+                  //  error(R.drawable.error) // Add an error image
+                }
+            )
+
             Image(
                 painter = thumbnailPainter,
                 contentDescription = "Video Thumbnail",
@@ -142,7 +150,7 @@ class ReadActivity : ComponentActivity() {
                 // Channel Image
                 val channelImagePainter = rememberImagePainter("URL_TO_CHANNEL_IMAGE")
                 Image(
-                    painter = channelImagePainter,
+                    painter = painterResource(id = R.drawable.ic_launcher_background),
                     contentDescription = "Channel Image",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier

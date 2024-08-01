@@ -78,4 +78,5 @@ dependencies {
     implementation (libs.exoplayer.ui)
     implementation (libs.exoplayer.core.v2182)
     implementation (libs.exoplayer.ui.v2182)
+    implementation (libs.coil.kt.coil.compose.v132)
 }

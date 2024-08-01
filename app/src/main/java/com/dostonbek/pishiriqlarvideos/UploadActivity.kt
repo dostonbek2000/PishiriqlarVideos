@@ -15,12 +15,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -38,16 +40,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.rememberImagePainter
 import com.dostonbek.pishiriqlarvideos.ui.theme.ColorIcon
+import com.dostonbek.pishiriqlarvideos.ui.theme.PishiriqlarVideosTheme
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.UploadTask
@@ -60,13 +63,16 @@ class UploadActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            UploadScreen()
+            PishiriqlarVideosTheme {
+                UploadScreen()
+            }
         }
     }
 
     @Composable
     fun UploadScreen() {
-        var selectedUri by remember { mutableStateOf<Uri?>(null) }
+        var selectedVideoUri by remember { mutableStateOf<Uri?>(null) }
+        var selectedThumbnailUri by remember { mutableStateOf<Uri?>(null) }
         var title by remember { mutableStateOf("") }
         var description by remember { mutableStateOf("") }
         var uploadState by remember { mutableStateOf(UploadState.IDLE) }
@@ -75,50 +81,72 @@ class UploadActivity : ComponentActivity() {
         var showDialog by remember { mutableStateOf(false) }
         var uploadTask by remember { mutableStateOf<UploadTask?>(null) }
 
-        val launcher =
+        val videoLauncher =
             rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-                selectedUri = uri
+                selectedVideoUri = uri
+            }
+
+        val thumbnailLauncher =
+            rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+                selectedThumbnailUri = uri
             }
 
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Top
         ) {
             Box(
                 modifier = Modifier
-                    .size(80.dp)
-                    .clip(CircleShape)
-                    .background(color = ColorIcon, shape = CircleShape),
+                    .padding(15.dp)
+                    .fillMaxWidth()
+                    .height(220.dp)
+                    .clip(RectangleShape)
+                    .background(color = Color.White, shape = RectangleShape),
                 contentAlignment = Alignment.Center
             ) {
-                if (selectedUri != null) {
+                if (selectedThumbnailUri != null) {
                     Image(
-                        painter = rememberImagePainter(selectedUri),
-                        contentDescription = "Selected Video Thumbnail",
+                        painter = rememberImagePainter(selectedThumbnailUri),
+                        contentDescription = "Selected Thumbnail",
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.size(60.dp)
-                    )
-                } else {
-                    Image(
-                        painter = painterResource(id = R.drawable.upload),
-                        contentDescription = "Placeholder Image",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.size(60.dp)
+                        modifier = Modifier.height(220.dp)
                     )
                 }
             }
             Spacer(modifier = Modifier.height(20.dp))
-            Text(text = "Video file ni yuklang", fontSize = 16.sp)
-            Button(
-                onClick = { launcher.launch("video/*") },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (selectedUri != null) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
-                )
+            Row(
+                modifier = Modifier.padding(12.dp, 5.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "Fileni tanlang")
-            }
 
+
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+
+                    Button(
+                        onClick = { videoLauncher.launch("video/*") },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (selectedVideoUri != null) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Text(text = "Choose video")
+                    }
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+
+                    Button(
+                        onClick = { thumbnailLauncher.launch("image/*") },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (selectedThumbnailUri != null) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Text(text = "Choose thumbnail")
+                    }
+                }
+            }
             Spacer(modifier = Modifier.height(20.dp))
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(0.8f),
@@ -145,9 +173,14 @@ class UploadActivity : ComponentActivity() {
             )
             Spacer(modifier = Modifier.height(20.dp))
             Button(onClick = {
-                if (selectedUri != null) {
+                if (selectedVideoUri != null) {
                     showDialog = true
-                    uploadVideo(selectedUri!!, title, description) { progress ->
+                    uploadVideo(
+                        selectedVideoUri!!,
+                        selectedThumbnailUri,
+                        title,
+                        description
+                    ) { progress ->
                         uploadProgress = progress
                     }
                 } else {
@@ -209,13 +242,14 @@ class UploadActivity : ComponentActivity() {
     }
 
     private fun uploadVideo(
-        uri: Uri,
+        videoUri: Uri,
+        thumbnailUri: Uri?,
         title: String,
         description: String,
         onProgress: (Float) -> Unit,
     ) {
-        val videoRef = storage.child("videos/${uri.lastPathSegment}")
-        val task = videoRef.putFile(uri)
+        val videoRef = storage.child("videos/${videoUri.lastPathSegment}")
+        val task = videoRef.putFile(videoUri)
 
         task.addOnProgressListener { snapshot ->
             val progress = (100 * snapshot.bytesTransferred / snapshot.totalByteCount).toFloat()
@@ -224,7 +258,18 @@ class UploadActivity : ComponentActivity() {
 
         task.addOnSuccessListener {
             videoRef.downloadUrl.addOnSuccessListener { downloadUrl ->
-                val thumbnailUrl = uploadThumbnail(uri) { thumbnailUrl ->
+                val thumbnailUpload = if (thumbnailUri != null) {
+                    { onComplete: (String) -> Unit ->
+                        uploadCustomThumbnail(
+                            thumbnailUri,
+                            onComplete
+                        )
+                    }
+                } else {
+                    { onComplete: (String) -> Unit -> uploadThumbnail(videoUri, onComplete) }
+                }
+
+                thumbnailUpload { thumbnailUrl ->
                     val videoData = VideoData(
                         url = downloadUrl.toString(),
                         thumbnailUrl = thumbnailUrl,
@@ -234,11 +279,11 @@ class UploadActivity : ComponentActivity() {
                     )
                     database.push().setValue(videoData).addOnCompleteListener { task ->
                         if (task.isSuccessful) {
-                            // uploadState = UploadState.SUCCESS
                             //showDialog = false
+                            //uploadState = UploadState.SUCCESS
                         } else {
-                            //  errorMessage = "Not Uploaded"
-                            // uploadState = UploadState.ERROR
+                            //errorMessage = "Failed to upload video metadata."
+                            //uploadState = UploadState.ERROR
                         }
                     }
                 }
@@ -249,7 +294,20 @@ class UploadActivity : ComponentActivity() {
         }
     }
 
-    private fun uploadThumbnail(videoUri: Uri, onComplete: (String) -> Unit): String {
+    private fun uploadCustomThumbnail(thumbnailUri: Uri, onComplete: (String) -> Unit) {
+        val thumbnailRef = storage.child("thumbnails/${thumbnailUri.lastPathSegment}")
+        val uploadTask = thumbnailRef.putFile(thumbnailUri)
+
+        uploadTask.addOnSuccessListener {
+            thumbnailRef.downloadUrl.addOnSuccessListener { uri ->
+                onComplete(uri.toString())
+            }
+        }.addOnFailureListener {
+            onComplete("")  // Handle failure case
+        }
+    }
+
+    private fun uploadThumbnail(videoUri: Uri, onComplete: (String) -> Unit) {
         val retriever = MediaMetadataRetriever()
         retriever.setDataSource(applicationContext, videoUri)
         val bitmap = retriever.getFrameAtTime(0)
@@ -266,7 +324,6 @@ class UploadActivity : ComponentActivity() {
         }.addOnFailureListener {
             onComplete("")  // Handle failure case
         }
-        return ""  // Return empty string initially, will be updated by the onComplete callback
     }
 
     @Preview(showBackground = true)
@@ -278,4 +335,6 @@ class UploadActivity : ComponentActivity() {
     enum class UploadState {
         IDLE, UPLOADING, SUCCESS, ERROR
     }
+
+
 }
